@@ -40,7 +40,7 @@
                      :fill-foreground-color [220 220 255]}})
    (range 20)))
 
-(def header
+(def header-row
   (into []  (concat
              basic-info
              progress-info)))
@@ -117,21 +117,32 @@
                       (and (= subject "C") (= row-index 0)) decorate-c0
                       (and (= subject "C") (= row-index 1)) decorate-c1)
         progress-cells (cond-> progress-cells-tmpl
-                             (and (= subject "E")) decorate-progress-e)
+                         (and (= subject "E")) decorate-progress-e)
         _ (prn progress-cells)]
     (into []
           (concat basic-cells
                   progress-cells))))
 
-(def data
+(defn user-chunk [user]
   (list
-   header
-   (row-tmpl "M" 0 {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"})
-   (row-tmpl "M" 1 {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"})
-   (row-tmpl "E" 0 {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"})
-   (row-tmpl "E" 1 {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"})
-   (row-tmpl "C" 0 {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"})
-   (row-tmpl "C" 1 {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"})))
+   (row-tmpl "M" 0 user)
+   (row-tmpl "M" 1 user)
+   (row-tmpl "E" 0 user)
+   (row-tmpl "E" 1 user)
+   (row-tmpl "C" 0 user)
+   (row-tmpl "C" 1 user)))
+
+;; Here begin the operational section
+(def data-from-db
+  (list
+   {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"}
+   {:s-id "455169" :s-name "Arne" :rank "幼大" :status "N"}
+   {:s-id "455123" :s-name "Laurence" :rank "幼大" :status "N"}))
+
+(def data
+  (let [data-rows  (mapcat user-chunk data-from-db)]
+    (concat (list header-row)
+            data-rows)))
 
 (let [;; A workbook is any [key value] seq of [sheet-name, sheet-grid].
       ;; Convert the table to a grid with the table-grid function.
