@@ -5,106 +5,135 @@
 (def basic-info
   [#:excel{:wrapped? true
            :data "S編號"
-           :style {:border-bottom :thin, :font {:bold true}}}
+           :style {:border-bottom :thick, :font {:bold true}}}
    #:excel{:wrapped? true
            :data "姓名"
-           :style {:border-bottom :thin, :font {:bold true}}}
+           :style {:border-bottom :thick, :font {:bold true}}}
    #:excel{:wrapped? true
            :data "學年"
-           :style {:border-bottom :thin, :font {:bold true}}}
+           :style {:border-bottom :thick, :font {:bold true}}}
    #:excel{:wrapped? true
            :data "狀態"
-           :style {:border-bottom :thin, :font {:bold true}}}
+           :style {:border-bottom :thick, :font {:bold true}}}
    #:excel{:wrapped? true
            :data "異動"
-           :style {:border-bottom :thin, :font {:bold true}}}
+           :style {:border-bottom :thick, :font {:bold true}}}
    #:excel{:wrapped? true
            :data "科目"
-           :style {:border-bottom :thin, :font {:bold true}}}
+           :style {:border-bottom :thick, :font {:bold true}}}
    #:excel{:wrapped? true
            :data "階段"
-           :style {:border-bottom :thin, :font {:bold true}}}])
+           :style {:border-right :thick
+                   :border-bottom :thick, :font {:bold true}
+                   :fill-pattern :solid-foreground
+                   :fill-foreground-color [220 220 255]}}])
 
-(def progress-v (mapv
-                 (fn [r]
-                   #:excel{:wrapped? true
-                           :data (str
-                                  (+ 1
-                                     (* 10 r)))
-                           :style {:border-bottom :thin, :font {:bold true}}})
-                 (range 20)))
+(def progress-info
+  (map
+   (fn [r]
+     #:excel{:wrapped? true
+             :data (str
+                    (+ 1
+                       (* 10 r)))
+             :style {:border-bottom :thick, :font {:bold true}
+                     :fill-pattern :solid-foreground
+                     :fill-foreground-color [220 220 255]}})
+   (range 20)))
 
 (def header
   (into []  (concat
              basic-info
-             progress-v)))
+             progress-info)))
+
+(def progress-cells-tmpl
+  (map
+   (fn [_]
+     #:excel{:wrapped? true
+             :data ""})
+   (range 20)))
+
+(defn decorate-progress-e [cells]
+  (mapv
+   (fn [c]
+     (assoc c :excel/style {:fill-pattern :solid-foreground
+                            :fill-foreground-color [220 220 255]}))
+   cells))
+
+(defn decorate-m0 [[c0 c1 c2 c3 c4 c5 c6]]
+  (let [c-id (assoc c0 :excel/style {:vertical-alignment :center}
+                    :excel/dims {:height 6 :width 1})
+        c-name (assoc c1 :excel/style {:vertical-alignment :center}
+                      :excel/dims {:height 6 :width 1})
+        c-rank (assoc c2 :excel/style {:vertical-alignment :center}
+                      :excel/dims {:height 6 :width 1})
+        c-status (assoc c3 :excel/style {:vertical-alignment :center}
+                        :excel/dims {:height 2 :width 1})
+        c-change (assoc c4 :excel/style {:vertical-alignment :center}
+                        :excel/dims {:height 2 :width 1})
+        c-subject (assoc c5 :excel/style {:vertical-alignment :center}
+                         :excel/dims {:height 2 :width 1})]
+    [c-id c-name c-rank c-status c-change c-subject c6]))
+
+(defn decorate-m1 [v]
+  v)
+
+(defn decorate-e0 [[c0 c1 c2 c3 c4 c5 c6]]
+  (let [c-status (assoc c3 :excel/style {:vertical-alignment :center}
+                        :excel/dims {:height 2 :width 1})
+        c-change (assoc c4 :excel/style {:vertical-alignment :center}
+                        :excel/dims {:height 2 :width 1})
+        c-subject (assoc c5 :excel/style {:vertical-alignment :center}
+                         :excel/dims {:height 2 :width 1})]
+    [c0 c1 c2 c-status c-change c-subject c6]))
+
+(defn decorate-e1 [v]
+  v)
+
+(defn decorate-c0 [[c0 c1 c2 c3 c4 c5 c6]]
+  (let [c-status (assoc c3 :excel/style {:vertical-alignment :center}
+                        :excel/dims {:height 2 :width 1})
+        c-change (assoc c4 :excel/style {:vertical-alignment :center}
+                        :excel/dims {:height 2 :width 1})
+        c-subject (assoc c5 :excel/style {:vertical-alignment :center}
+                         :excel/dims {:height 2 :width 1})]
+    [c0 c1 c2 c-status c-change c-subject c6]))
+
+(defn decorate-c1 [v]
+  v)
+
+(defn row-tmpl [subject row-index {:keys [s-id s-name rank status]}]
+  (let [basic-cells [#:excel{:wrapped? true, :data s-id}
+                     #:excel{:wrapped? true, :data s-name}
+                     #:excel{:wrapped? true, :data rank}
+                     #:excel{:wrapped? true, :data status}
+                     #:excel{:wrapped? true, :data ""}
+                     #:excel{:wrapped? true, :data subject}
+                     #:excel{:wrapped? true, :data ""}]
+        basic-cells (cond-> basic-cells
+                      (and (= subject "M") (= row-index 0)) decorate-m0
+                      (and (= subject "M") (= row-index 1)) decorate-m1
+                      (and (= subject "E") (= row-index 0)) decorate-e0
+                      (and (= subject "E") (= row-index 1)) decorate-e1
+                      (and (= subject "C") (= row-index 0)) decorate-c0
+                      (and (= subject "C") (= row-index 1)) decorate-c1)
+        progress-cells (cond-> progress-cells-tmpl
+                             (and (= subject "E")) decorate-progress-e)
+        _ (prn progress-cells)]
+    (into []
+          (concat basic-cells
+                  progress-cells))))
 
 (def data
   (list
    header
-   [#:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "abcde", :style {:vertical-alignment :center} :dims {:height 6 :width 1}}
-    #:excel{:wrapped? true, :data "幼大", :style {:vertical-alignment :center} :dims {:height 6 :width 1}}
-    #:excel{:wrapped? true, :data "N", :style {:vertical-alignment :center} :dims {:height 2 :width 1}}
-    #:excel{:wrapped? true, :data "", :style {:vertical-alignment :center} :dims {:height 2 :width 1}}
-    #:excel{:wrapped? true, :data "M", :style {:vertical-alignment :center} :dims {:height 2 :width 1}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {:fill-pattern :solid-foreground
-                                              :fill-foreground-color [220 220 255]}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}]
-   [#:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "abcde", :style {}}
-    #:excel{:wrapped? true, :data "幼大", :style {}}
-    #:excel{:wrapped? true, :data "N", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "M", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}]
-   [#:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "abcde", :style {}}
-    #:excel{:wrapped? true, :data "幼大", :style {}}
-    #:excel{:wrapped? true, :data "N", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "E", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}]
-   [#:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "abcde", :style {}}
-    #:excel{:wrapped? true, :data "幼大", :style {}}
-    #:excel{:wrapped? true, :data "N", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "E", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}]
-   [#:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "abcde", :style {}}
-    #:excel{:wrapped? true, :data "幼大", :style {}}
-    #:excel{:wrapped? true, :data "N", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "C", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}]
-   [#:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "abcde", :style {}}
-    #:excel{:wrapped? true, :data "幼大", :style {}}
-    #:excel{:wrapped? true, :data "N", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "C", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}
-    #:excel{:wrapped? true, :data "", :style {}}]))
+   (row-tmpl "M" 0 {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"})
+   (row-tmpl "M" 1 {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"})
+   (row-tmpl "E" 0 {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"})
+   (row-tmpl "E" 1 {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"})
+   (row-tmpl "C" 0 {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"})
+   (row-tmpl "C" 1 {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"})))
 
 (let [;; A workbook is any [key value] seq of [sheet-name, sheet-grid].
       ;; Convert the table to a grid with the table-grid function.
       workbook {"My Generated Sheet" data}]
-   (excel/quick-open! workbook))
+  (excel/quick-open! workbook))
