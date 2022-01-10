@@ -66,70 +66,97 @@
              :data ""})
    (range 20)))
 
-(defn decorate-progress-e [cells]
-  (mapv
-   (fn [c]
-     (assoc c :excel/style {:fill-pattern :solid-foreground
-                            :fill-foreground-color [220 220 255]}))
-   cells))
+(def last-row-style {:border-bottom :thick})
 
-(def progress-last-row-style {:border-bottom :thick})
+(def last-column-style {:border-right :thick})
 
-(def progress-value-style {})
+(def last-row-last-column-style {:border-bottom :thick
+                                 :border-right :thick})
+
+(def empty-style {})
+
+(def vspan-style {:vertical-alignment :center})
+
+(def vspan-last-column-style (merge last-column-style vspan-style))
+
+(def vspan-last-row-style (merge last-row-style vspan-style))
 
 (defn decorate-border-c1 [cells]
   (map-indexed
    (fn [idx c]
-     (assoc c :excel/style (wrap-five-thick-border idx progress-last-row-style)))
+     (assoc c :excel/style (wrap-five-thick-border idx last-row-style)))
    cells))
 
 (defn decorate-border-not-c1 [cells]
   (map-indexed
    (fn [idx c]
-     (assoc c :excel/style (wrap-five-thick-border idx progress-value-style)))
+     (assoc c :excel/style (wrap-five-thick-border idx empty-style)))
+   cells))
+
+(defn decorate-progress-e [cells]
+  (map-indexed
+   (fn [idx c]
+     (let [style* (assoc empty-style
+                         :fill-pattern :solid-foreground
+                         :fill-foreground-color [220 220 255])]
+       (assoc c :excel/style (wrap-five-thick-border idx style*))))
    cells))
 
 (defn decorate-m0 [[c0 c1 c2 c3 c4 c5 c6]]
-  (let [c-id (assoc c0 :excel/style {:vertical-alignment :center}
+  (let [c-id (assoc c0 :excel/style vspan-style
                     :excel/dims {:height 6 :width 1})
-        c-name (assoc c1 :excel/style {:vertical-alignment :center}
+        c-name (assoc c1 :excel/style  vspan-style
                       :excel/dims {:height 6 :width 1})
-        c-rank (assoc c2 :excel/style {:vertical-alignment :center}
+        c-rank (assoc c2 :excel/style vspan-style
                       :excel/dims {:height 6 :width 1})
-        c-status (assoc c3 :excel/style {:vertical-alignment :center}
+        c-status (assoc c3 :excel/style vspan-style
                         :excel/dims {:height 2 :width 1})
-        c-change (assoc c4 :excel/style {:vertical-alignment :center}
+        c-change (assoc c4 :excel/style vspan-style
                         :excel/dims {:height 2 :width 1})
-        c-subject (assoc c5 :excel/style {:vertical-alignment :center}
-                         :excel/dims {:height 2 :width 1})]
-    [c-id c-name c-rank c-status c-change c-subject c6]))
+        c-subject (assoc c5 :excel/style vspan-last-column-style
+                         :excel/dims {:height 2 :width 1})
+        c-stage (assoc c6 :excel/style last-column-style)]
+    [c-id c-name c-rank c-status c-change c-subject c-stage]))
 
-(defn decorate-m1 [v]
-  v)
+(defn decorate-m1 [[c0 c1 c2 c3 c4 c5 c6]]
+  (let [c-subject (assoc c5 :excel/style last-column-style)
+        c-stage (assoc c6 :excel/style last-column-style)]
+    [c0 c1 c2 c3 c4 c-subject c-stage]))
 
 (defn decorate-e0 [[c0 c1 c2 c3 c4 c5 c6]]
-  (let [c-status (assoc c3 :excel/style {:vertical-alignment :center}
+  (let [c-status (assoc c3 :excel/style vspan-style
                         :excel/dims {:height 2 :width 1})
-        c-change (assoc c4 :excel/style {:vertical-alignment :center}
+        c-change (assoc c4 :excel/style vspan-style
                         :excel/dims {:height 2 :width 1})
-        c-subject (assoc c5 :excel/style {:vertical-alignment :center}
-                         :excel/dims {:height 2 :width 1})]
-    [c0 c1 c2 c-status c-change c-subject c6]))
+        c-subject (assoc c5 :excel/style vspan-last-column-style
+                         :excel/dims {:height 2 :width 1})
+        c-stage  (assoc c6 :excel/style last-column-style)]
+    [c0 c1 c2 c-status c-change c-subject c-stage]))
 
-(defn decorate-e1 [v]
-  v)
+(defn decorate-e1 [[c0 c1 c2 c3 c4 c5 c6]]
+  (let [c-subject (assoc c5 :excel/style last-column-style)
+        c-stage (assoc c6 :excel/style last-column-style)]
+    [c0 c1 c2 c3 c4 c-subject c-stage]))
 
 (defn decorate-c0 [[c0 c1 c2 c3 c4 c5 c6]]
-  (let [c-status (assoc c3 :excel/style {:vertical-alignment :center}
+  (let [c-status (assoc c3 :excel/style vspan-style
                         :excel/dims {:height 2 :width 1})
-        c-change (assoc c4 :excel/style {:vertical-alignment :center}
+        c-change (assoc c4 :excel/style vspan-style
                         :excel/dims {:height 2 :width 1})
-        c-subject (assoc c5 :excel/style {:vertical-alignment :center}
-                         :excel/dims {:height 2 :width 1})]
-    [c0 c1 c2 c-status c-change c-subject c6]))
+        c-subject (assoc c5 :excel/style vspan-last-column-style
+                         :excel/dims {:height 2 :width 1})
+        c-stage  (assoc c6 :excel/style last-column-style)]
+    [c0 c1 c2 c-status c-change c-subject c-stage]))
 
-(defn decorate-c1 [v]
-  v)
+(defn decorate-c1 [[c0 c1 c2 c3 c4 c5 c6]]
+  (let [c-id (assoc c0 :excel/style last-row-style)
+        c-name (assoc c1 :excel/style  last-row-style)
+        c-rank (assoc c2 :excel/style last-row-style)
+        c-status (assoc c3 :excel/style last-row-style)
+        c-change (assoc c4 :excel/style last-row-style)
+        c-subject (assoc c5 :excel/style last-row-last-column-style)
+        c-stage (assoc c6 :excel/style last-row-last-column-style)]
+    [c-id c-name c-rank c-status c-change c-subject c-stage]))
 
 (defn row-tmpl [subject row-index {:keys [s-id s-name rank status]}]
   (let [basic-cells [#:excel{:wrapped? true, :data s-id}
@@ -146,12 +173,12 @@
                       (and (= subject "E") (= row-index 1)) decorate-e1
                       (and (= subject "C") (= row-index 0)) decorate-c0
                       (and (= subject "C") (= row-index 1)) decorate-c1)
-        progress-cells* (cond-> progress-cells-tmpl
+        progress-cells* (if (and (= subject "C") (= row-index 1))
+                          (decorate-border-c1 progress-cells-tmpl)
+                          (decorate-border-not-c1 progress-cells-tmpl))
+        progress-cells (cond-> progress-cells*
                          (and (= subject "E")) decorate-progress-e)
-        progress-cells (if (and (= subject "C") (= row-index 1))
-                         (decorate-border-c1 progress-cells*)
-                         (decorate-border-not-c1 progress-cells*))
-        _ (prn progress-cells)]
+        _ (prn basic-cells)]
     (into []
           (concat basic-cells
                   progress-cells))))
