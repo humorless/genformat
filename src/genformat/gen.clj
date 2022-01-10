@@ -2,31 +2,47 @@
   (:require [excel-clj.core :as excel]
             [excel-clj.cell :as cell]))
 
+(def basic-info-style {:border-top :medium
+                       :border-bottom :thick
+                       :font {:bold true}})
+
 (def basic-info
   [#:excel{:wrapped? true
            :data "S編號"
-           :style {:border-bottom :thick, :font {:bold true}}}
+           :style basic-info-style}
    #:excel{:wrapped? true
            :data "姓名"
-           :style {:border-bottom :thick, :font {:bold true}}}
+           :style basic-info-style}
    #:excel{:wrapped? true
            :data "學年"
-           :style {:border-bottom :thick, :font {:bold true}}}
+           :style basic-info-style}
    #:excel{:wrapped? true
            :data "狀態"
-           :style {:border-bottom :thick, :font {:bold true}}}
+           :style basic-info-style}
    #:excel{:wrapped? true
            :data "異動"
-           :style {:border-bottom :thick, :font {:bold true}}}
+           :style basic-info-style}
    #:excel{:wrapped? true
            :data "科目"
-           :style {:border-bottom :thick, :font {:bold true}}}
+           :style basic-info-style}
    #:excel{:wrapped? true
            :data "階段"
-           :style {:border-right :thick
-                   :border-bottom :thick, :font {:bold true}
-                   :fill-pattern :solid-foreground
-                   :fill-foreground-color [220 220 255]}}])
+           :style (assoc basic-info-style
+                         :border-right :thick
+                         :fill-pattern :solid-foreground
+                         :fill-foreground-color [220 220 255])}])
+
+(def progress-info-style {:border-bottom :thick
+                          :font {:bold true}
+                          :fill-pattern :solid-foreground
+                          :fill-foreground-color [220 220 255]})
+
+(defn wrap-five-thick-border
+  "every five columns, there is a thick right border"
+  [index ori-style]
+  (if (= 4 (mod index 5))
+    (assoc ori-style :border-right :thick)
+    ori-style))
 
 (def progress-info
   (map
@@ -35,9 +51,7 @@
              :data (str
                     (+ 1
                        (* 10 r)))
-             :style {:border-bottom :thick, :font {:bold true}
-                     :fill-pattern :solid-foreground
-                     :fill-foreground-color [220 220 255]}})
+             :style (wrap-five-thick-border r progress-info-style)})
    (range 20)))
 
 (def header-row
@@ -57,6 +71,22 @@
    (fn [c]
      (assoc c :excel/style {:fill-pattern :solid-foreground
                             :fill-foreground-color [220 220 255]}))
+   cells))
+
+(def progress-last-row-style {:border-bottom :thick})
+
+(def progress-value-style {})
+
+(defn decorate-border-c1 [cells]
+  (map-indexed
+   (fn [idx c]
+     (assoc c :excel/style (wrap-five-thick-border idx progress-last-row-style)))
+   cells))
+
+(defn decorate-border-not-c1 [cells]
+  (map-indexed
+   (fn [idx c]
+     (assoc c :excel/style (wrap-five-thick-border idx progress-value-style)))
    cells))
 
 (defn decorate-m0 [[c0 c1 c2 c3 c4 c5 c6]]
@@ -116,8 +146,11 @@
                       (and (= subject "E") (= row-index 1)) decorate-e1
                       (and (= subject "C") (= row-index 0)) decorate-c0
                       (and (= subject "C") (= row-index 1)) decorate-c1)
-        progress-cells (cond-> progress-cells-tmpl
+        progress-cells* (cond-> progress-cells-tmpl
                          (and (= subject "E")) decorate-progress-e)
+        progress-cells (if (and (= subject "C") (= row-index 1))
+                         (decorate-border-c1 progress-cells*)
+                         (decorate-border-not-c1 progress-cells*))
         _ (prn progress-cells)]
     (into []
           (concat basic-cells
