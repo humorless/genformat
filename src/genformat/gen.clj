@@ -1,5 +1,7 @@
-(ns genformat.core
-  (:require [excel-clj.core :as excel]
+(ns genformat.gen
+  (:require [clojure.data.csv :as csv]
+            [clojure.java.io :as io]
+            [excel-clj.core :as excel]
             [excel-clj.cell :as cell]))
 
 (def basic-info-style {:border-top :medium
@@ -208,3 +210,40 @@
       ;; Convert the table to a grid with the table-grid function.
       workbook {"My Generated Sheet" data}]
   (excel/quick-open! workbook))
+
+(defn from-tsv
+  "filename needs to have the complete file resources path"
+  [path]
+  (with-open [reader (io/reader path)]
+    (rest
+     (doall
+      (csv/read-csv reader :separator \tab)))))
+
+(defn data->workbook
+  "student-data is in the form of
+   (
+    [centor-id instructor-name student-symbol student-name
+     grade-name grade-ord M E C]
+    ...
+   )
+  "
+  [student-data]
+  ;;
+  (-> student-data
+      ;; TODO
+      )
+  )
+
+(defn create-out-filepath! [path]
+  (let [[f ext] (clojure.string/split path #"\.")]
+    (str f ".xlsx")))
+
+;; API
+
+
+(defn from-tsv-to-excel!
+  [path]
+  (let [students (from-tsv path)
+        workbook (data->workbook students)
+        out-path (create-out-filepath! path)]
+    (excel/write! workbook out-path)))
