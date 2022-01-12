@@ -224,8 +224,10 @@
     {"Generated Sheet" data}))
 
 (defn create-out-filepath! [path]
-  (let [[f ext] (clojure.string/split path #"\.")]
-    (str f ".xlsx")))
+  (let [segments  (clojure.string/split path #"\.")
+        front-segments (vec (butlast segments))
+        new-segments (conj front-segments "xlsx")]
+    (clojure.string/join "." new-segments)))
 
 ;; side effect functions
 (defn from-tsv

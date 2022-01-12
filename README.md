@@ -7,6 +7,7 @@ FIXME: description
 2. install leiningen
 3. execute the command to build executable jar: `genformat-1.0.0-standalone.jar`
    `lein uberjar` 
+4. move the file `target/uberjar/genformat-1.0.0-standalone.jar` to the right directory.
 
 ## Usage
 
