@@ -5,4 +5,4 @@
 (defn -main
   "I don't do a whole lot ... yet."
   [& args]
-  (dorun (map gen/from-csv args)))
+  (dorun (map gen/from-tsv-to-excel! args)))

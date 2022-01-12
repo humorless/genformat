@@ -3,34 +3,26 @@
 FIXME: description
 
 ## Installation
-
-Download from http://example.com/FIXME.
+1. install java
+2. install leiningen
+3. execute the command to build executable jar: `genformat-1.0.0-standalone.jar`
+   `lein uberjar` 
 
 ## Usage
 
-FIXME: explanation
-
-    $ java -jar genformat-0.1.0-standalone.jar [args]
-
-## Options
-
-FIXME: listing of options this app accepts.
+```
+    $ java -jar genformat-1.0.0-standalone.jar $TEH_TSV_INPUT_FILE_PATH 
+```
 
 ## Examples
 
-...
 
 ### Bugs
 
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
 
 ## License
 
-Copyright © 2022 FIXME
+Copyright © 2022 Laurence Chen from [REPLWARE](https://replware.dev)
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at

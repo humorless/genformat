@@ -111,8 +111,10 @@
                       :excel/dims {:height 6 :width 1})
         c-rank (assoc c2 :excel/style vspan-style
                       :excel/dims {:height 6 :width 1})
+        status (get-in c3 [:excel/user :m-status])
         c-status (assoc c3 :excel/style vspan-style
-                        :excel/dims {:height 2 :width 1})
+                        :excel/dims {:height 2 :width 1}
+                        :excel/data status)
         c-change (assoc c4 :excel/style vspan-style
                         :excel/dims {:height 2 :width 1})
         c-subject (assoc c5 :excel/style vspan-last-column-style
@@ -121,13 +123,17 @@
     [c-id c-name c-rank c-status c-change c-subject c-stage]))
 
 (defn decorate-m1 [[c0 c1 c2 c3 c4 c5 c6]]
-  (let [c-subject (assoc c5 :excel/style last-column-style)
+  (let [status (get-in c3 [:excel/user :m-status])
+        c-status (assoc c3 :excel/data status)
+        c-subject (assoc c5 :excel/style last-column-style)
         c-stage (assoc c6 :excel/style last-column-style)]
-    [c0 c1 c2 c3 c4 c-subject c-stage]))
+    [c0 c1 c2 c-status c4 c-subject c-stage]))
 
 (defn decorate-e0 [[c0 c1 c2 c3 c4 c5 c6]]
-  (let [c-status (assoc c3 :excel/style vspan-style
-                        :excel/dims {:height 2 :width 1})
+  (let [status (get-in c3 [:excel/user :e-status])
+        c-status (assoc c3 :excel/style vspan-style
+                        :excel/dims {:height 2 :width 1}
+                        :excel/data status)
         c-change (assoc c4 :excel/style vspan-style
                         :excel/dims {:height 2 :width 1})
         c-subject (assoc c5 :excel/style vspan-last-column-style
@@ -136,13 +142,17 @@
     [c0 c1 c2 c-status c-change c-subject c-stage]))
 
 (defn decorate-e1 [[c0 c1 c2 c3 c4 c5 c6]]
-  (let [c-subject (assoc c5 :excel/style last-column-style)
+  (let [status (get-in c3 [:excel/user :e-status])
+        c-status (assoc c3 :excel/data status)
+        c-subject (assoc c5 :excel/style last-column-style)
         c-stage (assoc c6 :excel/style last-column-style)]
-    [c0 c1 c2 c3 c4 c-subject c-stage]))
+    [c0 c1 c2 c-status c4 c-subject c-stage]))
 
 (defn decorate-c0 [[c0 c1 c2 c3 c4 c5 c6]]
-  (let [c-status (assoc c3 :excel/style vspan-style
-                        :excel/dims {:height 2 :width 1})
+  (let [status (get-in c3 [:excel/user :c-status])
+        c-status (assoc c3 :excel/style vspan-style
+                        :excel/dims {:height 2 :width 1}
+                        :excel/data status)
         c-change (assoc c4 :excel/style vspan-style
                         :excel/dims {:height 2 :width 1})
         c-subject (assoc c5 :excel/style vspan-last-column-style
@@ -154,17 +164,19 @@
   (let [c-id (assoc c0 :excel/style last-row-style)
         c-name (assoc c1 :excel/style  last-row-style)
         c-rank (assoc c2 :excel/style last-row-style)
-        c-status (assoc c3 :excel/style last-row-style)
+        status (get-in c3 [:excel/user :c-status])
+        c-status (assoc c3 :excel/style last-row-style
+                        :excel/data status)
         c-change (assoc c4 :excel/style last-row-style)
         c-subject (assoc c5 :excel/style last-row-last-column-style)
         c-stage (assoc c6 :excel/style last-row-last-column-style)]
     [c-id c-name c-rank c-status c-change c-subject c-stage]))
 
-(defn row-tmpl [subject row-index {:keys [s-id s-name rank status]}]
+(defn row-tmpl [subject row-index {:keys [s-id s-name rank] :as user}]
   (let [basic-cells [#:excel{:wrapped? true, :data s-id}
                      #:excel{:wrapped? true, :data s-name}
                      #:excel{:wrapped? true, :data rank}
-                     #:excel{:wrapped? true, :data status}
+                     #:excel{:wrapped? true, :user user}
                      #:excel{:wrapped? true, :data ""}
                      #:excel{:wrapped? true, :data subject}
                      #:excel{:wrapped? true, :data ""}]
@@ -180,7 +192,8 @@
                           (decorate-border-not-c1 progress-cells-tmpl))
         progress-cells (cond-> progress-cells*
                          (and (= subject "E")) decorate-progress-e)
-        _ (prn basic-cells)]
+        ;; _ (prn basic-cells)
+        ]
     (into []
           (concat basic-cells
                   progress-cells))))
@@ -194,23 +207,27 @@
    (row-tmpl "C" 0 user)
    (row-tmpl "C" 1 user)))
 
-;; Here begin the operational section
-(def data-from-db
-  (list
-   {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"}
-   {:s-id "455169" :s-name "Arne" :rank "幼大" :status "N"}
-   {:s-id "455123" :s-name "Laurence" :rank "幼大" :status "N"}))
+(defn data->workbook
+  "student-data is in the form of
+   (
+    [centor-id instructor-name student-symbol student-name grade-name grade-ord M E C]
+    ...
+   )"
+  [student-data]
+  (let [data-src  (->> student-data
+                       (map (fn [[_ _ student-symbol student-name grade-name _ M-status E-status C-status]]
+                                 (zipmap [:s-id :s-name :rank :m-status :e-status :c-status]
+                                         [student-symbol student-name grade-name M-status E-status C-status]))))
+        ;; _ (prn data-src)
+        data-rows (mapcat user-chunk data-src)
+        data (concat (list header-row) data-rows)]
+    {"Generated Sheet" data}))
 
-(def data
-  (let [data-rows  (mapcat user-chunk data-from-db)]
-    (concat (list header-row)
-            data-rows)))
+(defn create-out-filepath! [path]
+  (let [[f ext] (clojure.string/split path #"\.")]
+    (str f ".xlsx")))
 
-(let [;; A workbook is any [key value] seq of [sheet-name, sheet-grid].
-      ;; Convert the table to a grid with the table-grid function.
-      workbook {"My Generated Sheet" data}]
-  (excel/quick-open! workbook))
-
+;; side effect functions
 (defn from-tsv
   "filename needs to have the complete file resources path"
   [path]
@@ -219,31 +236,30 @@
      (doall
       (csv/read-csv reader :separator \tab)))))
 
-(defn data->workbook
-  "student-data is in the form of
-   (
-    [centor-id instructor-name student-symbol student-name
-     grade-name grade-ord M E C]
-    ...
-   )
-  "
-  [student-data]
-  ;;
-  (-> student-data
-      ;; TODO
-      )
-  )
-
-(defn create-out-filepath! [path]
-  (let [[f ext] (clojure.string/split path #"\.")]
-    (str f ".xlsx")))
-
 ;; API
-
-
 (defn from-tsv-to-excel!
   [path]
   (let [students (from-tsv path)
         workbook (data->workbook students)
         out-path (create-out-filepath! path)]
     (excel/write! workbook out-path)))
+
+;; REPL session
+(comment
+  (from-tsv-to-excel! "/Users/laurence/kumon/genformat/resources/enrollment_fc6304201.tsv")
+
+  (def data-from-db
+    (list
+     {:s-id "455143" :s-name "田中旨夫" :rank "幼大" :status "N"}
+     {:s-id "455169" :s-name "Arne" :rank "幼大" :status "N"}
+     {:s-id "455123" :s-name "Laurence" :rank "幼大" :status "N"}))
+
+  (def data
+    (let [data-rows  (mapcat user-chunk data-from-db)]
+      (concat (list header-row)
+              data-rows)))
+
+  (let [;; A workbook is any [key value] seq of [sheet-name, sheet-grid].
+      ;; Convert the table to a grid with the table-grid function.
+        workbook {"My Generated Sheet" data}]
+    (excel/quick-open! workbook)))
