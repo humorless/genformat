@@ -254,7 +254,7 @@
   [segment]
   (let [data-src (map #(cset/rename-keys % {:gen_subticket/student_symbol :s-id
                                             :gen_subticket/student_name :s-name
-                                            :gen_subticket/student_grade_ord :rank
+                                            :gen_subticket/school_grade_name :rank
                                             :gen_subticket/e :e-status
                                             :gen_subticket/m :m-status
                                             :gen_subticket/c :c-status}) segment)
