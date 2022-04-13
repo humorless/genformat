@@ -1,5 +1,7 @@
 (ns genformat.gen
-  (:require [clojure.data.csv :as csv]
+  (:require [genformat.sql :as sql]
+            [clojure.set :as cset]
+            [clojure.data.csv :as csv]
             [clojure.java.io :as io]
             [excel-clj.core :as excel]
             [excel-clj.cell :as cell]))
@@ -216,8 +218,8 @@
   [student-data]
   (let [data-src  (->> student-data
                        (map (fn [[_ _ student-symbol student-name grade-name _ M-status E-status C-status]]
-                                 (zipmap [:s-id :s-name :rank :m-status :e-status :c-status]
-                                         [student-symbol student-name grade-name M-status E-status C-status]))))
+                              (zipmap [:s-id :s-name :rank :m-status :e-status :c-status]
+                                      [student-symbol student-name grade-name M-status E-status C-status]))))
         ;; _ (prn data-src)
         data-rows (mapcat user-chunk data-src)
         data (concat (list header-row) data-rows)]
@@ -238,6 +240,35 @@
      (doall
       (csv/read-csv reader :separator \tab)))))
 
+(defn segment->workbook
+  "segemnt is in the form of
+   (
+    {:student_name 
+     :e 
+     :m
+     :c ... }
+    {..}
+    {..}
+    ...
+   )"
+  [segment]
+  (let [data-src (map #(cset/rename-keys % {:gen_subticket/student_symbol :s-id
+                                            :gen_subticket/student_name :s-name
+                                            :gen_subticket/student_grade_ord :rank
+                                            :gen_subticket/e :e-status
+                                            :gen_subticket/m :m-status
+                                            :gen_subticket/c :c-status}) segment)
+        ;; _ (prn data-src)
+        data-rows (mapcat user-chunk data-src)
+        data (concat (list header-row) data-rows)
+        {:gen_subticket/keys [file_name path]} (first segment)]
+    {"Generated Sheet" data
+     :path (str path file_name ".xlsx")}))
+
+(defn write-workbook! [{:keys [path] :as w}]
+  (let [workbook (dissoc w :path)]
+    (excel/write! workbook path)))
+
 ;; API
 (defn from-tsv-to-excel!
   [path]
@@ -246,7 +277,15 @@
         out-path (create-out-filepath! path)]
     (excel/write! workbook out-path)))
 
+(defn from-db-to-excel!
+  []
+  (let [src (sql/get-subticket-src)
+        data-segments (partition-by :gen_subticket/file_name src)
+        workbooks (map segment->workbook data-segments)]
+    (run! write-workbook! workbooks)))
 ;; REPL session
+
+
 (comment
   (from-tsv-to-excel! "/Users/laurence/kumon/genformat/resources/enrollment_fc6304201.tsv")
 
