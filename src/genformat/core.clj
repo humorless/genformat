@@ -12,5 +12,4 @@
   (let [cmd (first args)]
     (cond
       (= cmd ":tsv") (dorun (map gen/from-tsv-to-excel! (rest args)))
-      ;; (= cmd ":db") (gen/from-db-to-excel!)
-      )))
+      (= cmd ":db") (gen/from-db-to-excel!))))
