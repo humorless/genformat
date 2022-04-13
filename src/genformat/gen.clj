@@ -12,7 +12,7 @@
 
 (def basic-info
   [#:excel{:wrapped? true
-           :data "S編號"
+           :data "學生ID"
            :style basic-info-style}
    #:excel{:wrapped? true
            :data "姓名"
