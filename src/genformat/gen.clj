@@ -255,9 +255,9 @@
   (let [data-src (map #(cset/rename-keys % {:gen_subticket/student_symbol :s-id
                                             :gen_subticket/student_name :s-name
                                             :gen_subticket/school_grade_name :rank
-                                            :gen_subticket/e :e-status
-                                            :gen_subticket/m :m-status
-                                            :gen_subticket/c :c-status}) segment)
+                                            :gen_subticket/E :e-status
+                                            :gen_subticket/M :m-status
+                                            :gen_subticket/C :c-status}) segment)
         ;; _ (prn data-src)
         data-rows (mapcat user-chunk data-src)
         data (concat (list header-row) data-rows)
