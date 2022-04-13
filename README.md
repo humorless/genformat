@@ -17,6 +17,7 @@ Generating sub ticket from tsv files
 ```
 
 Generating sub ticket from database
+
 Note: using this option, you need to config the file `config.edn`
 ```
     $ java -jar genformat-1.0.0-standalone.jar :db
