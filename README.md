@@ -11,10 +11,16 @@ FIXME: description
 
 ## Usage
 
+Generating sub ticket from tsv files
 ```
-    $ java -jar genformat-1.0.0-standalone.jar $TEH_TSV_INPUT_FILE_PATH 
+    $ java -jar genformat-1.0.0-standalone.jar :tsv $TEH_TSV_INPUT_FILE_PATH
 ```
 
+Generating sub ticket from database
+Note: using this option, you need to config the file `config.edn`
+```
+    $ java -jar genformat-1.0.0-standalone.jar :db
+```
 ## Examples
 
 
