@@ -268,7 +268,7 @@
 
 (defn write-workbook! [{:keys [dir path] :as w}]
   (let [workbook (dissoc w :path :dir)]
-    (.mkdir (java.io.File. dir))
+    (.mkdirs (java.io.File. dir))
     (excel/write! workbook path)))
 
 ;; API
