@@ -263,10 +263,12 @@
         data (concat (list header-row) data-rows)
         {:gen_subticket/keys [file_name path]} (first segment)]
     {"Generated Sheet" data
+     :dir path
      :path (str path file_name ".xlsx")}))
 
-(defn write-workbook! [{:keys [path] :as w}]
-  (let [workbook (dissoc w :path)]
+(defn write-workbook! [{:keys [dir path] :as w}]
+  (let [workbook (dissoc w :path :dir)]
+    (.mkdir (java.io.File. dir))
     (excel/write! workbook path)))
 
 ;; API
